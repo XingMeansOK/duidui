@@ -30,7 +30,7 @@ export default class Main {
     this.bg = new BackGround(ctx)
     this.player = new Player(ctx)
     this.gameinfo = new GameInfo()
-    this.music = new Music()
+    // this.music = new Music()
 
     this.bindLoop = this.loop.bind(this)
     this.hasEventBind = false
