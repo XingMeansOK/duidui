@@ -4,9 +4,19 @@ import BackGround from './runtime/background'
 import GameInfo from './runtime/gameinfo'
 import Music from './runtime/music'
 import DataBus from './databus'
+import THREE from './libs/three.min.js'
 
 // let ctx = canvas.getContext('2d')
 let ctx = canvas.getContext('webgl', {antialias:true})
+// 指定 canvas 为 wx 暴露出来的 canvas
+let renderer = THREE.WebGLRenderer({canvas})
+// 创建场景
+let scene = new THREE.Scene();
+// 透视摄像头
+let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+let geometry = new THREE.CubeGeometry(1, 1, 1);
+
 let databus = new DataBus()
 
 /**
@@ -22,6 +32,9 @@ export default class Main {
 
   restart() {
     databus.reset()
+
+    // 设置窗口尺寸
+    renderer.setSize(window.innerWidth, window.innerHeight);
 
     canvas.removeEventListener(
       'touchstart',
