@@ -5,7 +5,8 @@ import GameInfo from './runtime/gameinfo'
 import Music from './runtime/music'
 import DataBus from './databus'
 
-let ctx = canvas.getContext('2d')
+// let ctx = canvas.getContext('2d')
+let ctx = canvas.getContext('webgl', {antialias:true})
 let databus = new DataBus()
 
 /**
