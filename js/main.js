@@ -1,28 +1,19 @@
-import Player from './player/index'
-import Enemy from './npc/enemy'
-import BackGround from './runtime/background'
-import GameInfo from './runtime/gameinfo'
-import Music from './runtime/music'
-import DataBus from './databus'
-import THREE from './libs/three.min.js'
+// import Player from './player/index'
+// import Enemy from './npc/enemy'
+// import BackGround from './runtime/background'
+// import GameInfo from './runtime/gameinfo'
+// import Music from './runtime/music'
+// import DataBus from './databus'
+// import THREE from './libs/three.min.js'
+let THREE = require('./libs/three.min.js')
 
 // let ctx = canvas.getContext('2d')
-let ctx = canvas.getContext('webgl', {antialias:true})
-// 指定 canvas 为 wx 暴露出来的 canvas
-let renderer = THREE.WebGLRenderer({canvas})
-// 创建场景
-let scene = new THREE.Scene();
-// 透视摄像头
-let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-let geometry = new THREE.CubeGeometry(1, 1, 1);
-
-let databus = new DataBus()
+// let databus = new DataBus()
 
 /**
- * 游戏主函数
+ * 游戏主函数(微信小游戏官方示例，面向对象的架构)
  */
-export default class Main {
+class Main {
   constructor() {
     // 维护当前requestAnimationFrame的id
     this.aniId = 0
@@ -33,9 +24,6 @@ export default class Main {
   restart() {
     databus.reset()
 
-    // 设置窗口尺寸
-    renderer.setSize(window.innerWidth, window.innerHeight);
-
     canvas.removeEventListener(
       'touchstart',
       this.touchHandler
@@ -44,7 +32,7 @@ export default class Main {
     this.bg = new BackGround(ctx)
     this.player = new Player(ctx)
     this.gameinfo = new GameInfo()
-    // this.music = new Music()
+    this.music = new Music()
 
     this.bindLoop = this.loop.bind(this)
     this.hasEventBind = false
@@ -188,5 +176,43 @@ export default class Main {
       this.bindLoop,
       canvas
     )
+  }
+}
+
+
+/**
+ * 游戏主函数
+ */
+export default class _3D {
+  constructor() {
+    // 场景
+    this.scene = new THREE.Scene()
+    // 透视摄像头
+    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+    this.camera.position.z = 2.5
+    this.camera.position.y = 2.5
+    this.camera.lookAt(0, 0, 0)
+    // webGL渲染器
+    // 同时指定canvas为小游戏暴露出来的canvas
+    this.renderer = new THREE.WebGLRenderer({canvas})
+    this.renderer.setSize(window.innerWidth, window.innerHeight)
+    var geometry = new THREE.CubeGeometry(1, 1, 1)
+    var material = new THREE.MeshBasicMaterial()
+    this.cube = new THREE.Mesh(geometry, material)
+    this.scene.add(this.cube)
+
+    this.cube.castShadow = true
+    window.requestAnimationFrame(this.loop.bind(this), canvas)
+  }
+
+  update() {
+    // this.cube.rotation.x += 0.02;
+    // this.cube.rotation.y += 0.04;
+    // this.cube.rotation.z += 0.06;
+  }
+  loop() {
+    this.update()
+    this.renderer.render(this.scene, this.camera)
+    window.requestAnimationFrame(this.loop.bind(this), canvas)
   }
 }
