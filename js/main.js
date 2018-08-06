@@ -6,7 +6,6 @@
 // import Music from './runtime/music'
 // import DataBus from './databus'
 // import THREE from './libs/three.min.js'
-import World from './runtime/world'
 let THREE = require('./libs/three.min.js')
 // let ctx = canvas.getContext('2d')
 // let databus = new DataBus()
@@ -218,12 +217,15 @@ export default class _3D {
   constructor() {
     var camera, scene, renderer, dirLight, dirLightHeper, hemiLight, hemiLightHelper;
 
+    // 摄像机
     camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 5000);
     camera.position.set(0, 0, 500);
     scene = new THREE.Scene();
     scene.background = new THREE.Color().setHSL(0.6, 0, 1);
     scene.fog = new THREE.Fog(scene.background, 1, 5000);
+
     // LIGHTS
+    // 半球光
     hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.6);
     hemiLight.color.setHSL(0.6, 1, 0.6);
     hemiLight.groundColor.setHSL(0.095, 1, 0.75);
@@ -231,7 +233,8 @@ export default class _3D {
     scene.add(hemiLight);
     hemiLightHelper = new THREE.HemisphereLightHelper(hemiLight, 10);
     scene.add(hemiLightHelper);
-    //
+    
+    // 平行光
     dirLight = new THREE.DirectionalLight(0xffffff, 1);
     dirLight.color.setHSL(0.1, 1, 0.95);
     dirLight.position.set(-1, 1.75, 1);
@@ -249,6 +252,7 @@ export default class _3D {
     dirLight.shadow.bias = -0.0001;
     dirLightHeper = new THREE.DirectionalLightHelper(dirLight, 10);
     scene.add(dirLightHeper);
+
     // GROUND
     var groundGeo = new THREE.PlaneBufferGeometry(4000, 4000);
     var groundMat = new THREE.MeshPhongMaterial({ color: 0xff00f0, specular: 0x050505 }); 
@@ -259,6 +263,7 @@ export default class _3D {
     scene.add(ground);
     ground.receiveShadow = true;
 
+    // 渲染天空的着色器
     var vertexShader = `varying vec3 vWorldPosition;
 			void main() {
 				vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
@@ -303,6 +308,38 @@ export default class _3D {
     renderer.gammaInput = true;
     renderer.gammaOutput = true;
     renderer.shadowMap.enabled = true;
+
+    // 场景控制
+    let x, y
+    let move = (e) => {
+      e.preventDefault()
+
+      let _x = e.touches[0].clientX
+      let _y = e.touches[0].clientY
+
+      let d = _x - x
+      // 摄像机要旋转的圆心角
+      let r = - d / window.innerWidth * Math.PI / 2
+      this.camera.position.z = 500 * Math.cos(r);
+      this.camera.position.x = 500 * Math.sin(r);
+      // 每次移动都要有这句话，不然就瞄歪了
+      this.camera.lookAt(0, 0, 0)
+    }
+    let end = (e) => {
+      e.preventDefault()
+      canvas.removeEventListener('touchmove', move)
+      canvas.removeEventListener('touchend', end)
+    }
+    canvas.addEventListener('touchstart', ((e) => {
+      e.preventDefault()
+
+      x = e.touches[0].clientX
+      y = e.touches[0].clientY
+
+      canvas.addEventListener('touchmove', move)
+      canvas.addEventListener('touchend', end)
+
+    }).bind(this))
 
     this.scene = scene
     this.camera = camera
