@@ -184,42 +184,25 @@ class Main {
  * 游戏主函数
  */
 export default class _3D {
-  _constructor() {
-    // 场景
-    this.scene = new THREE.Scene()
-    this.scene.background = new THREE.Color('skyblue')
-    // 正射摄像头
-    let aspect = window.innerWidth / window.innerHeight
-    this.camera = new THREE.OrthographicCamera(- 20 * aspect, 20 * aspect, 20, - 20, 0.1, 1000);
-    // this.camera = new THREE.OrthographicCamera(- 2 * aspect, 2 * aspect, 2, - 2, 0.1, 1000);
-    this.camera.position.z = 1
-    this.camera.position.y = 10.5
-    this.camera.lookAt(0, 10, 0)
-    this.camera.position.y = 1.5
-    this.camera.lookAt(0, 1, 0)
-    // webGL渲染器
-    // 同时指定canvas为小游戏暴露出来的canvas
-    this.renderer = new THREE.WebGLRenderer({canvas})
-    this.renderer.setSize(window.innerWidth, window.innerHeight)
-    this.world = new World()
-    this.scene.add(this.world)
-    var geometry = new THREE.CubeGeometry(1, 1, 1)
-    var material = new THREE.MeshBasicMaterial({ color: 0xffffff, specular: 0x050505 })
-    this.cube = new THREE.Mesh(geometry, material)
-    this.cube.castShadow = true
-    this.world.add(this.cube)
-
-   
-
-    window.requestAnimationFrame(this.loop.bind(this), canvas)
-  }
 
   constructor() {
     var camera, scene, renderer, dirLight, dirLightHeper, hemiLight, hemiLightHelper;
 
+    // 摄像机目标点的y值，xz为0
+    this.lookAtY = 100
+    this.cameraHeight = this.lookAtY + 100 
+    this.cameraDistanceToY = 500
+    // 摄像机旋转的总角度
+    this.cameraRotation = Math.PI / 4
+
     // 摄像机
-    camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 5000);
-    camera.position.set(0, 0, 500);
+    // 正射摄像头
+    let aspect = window.innerWidth / window.innerHeight
+    let k = 200
+    camera = new THREE.OrthographicCamera( - k * aspect, k * aspect, k, - k, 0.1, 10000);
+    // camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 5000);
+    camera.position.set(this.cameraDistanceToY / Math.sqrt(2), this.cameraHeight, this.cameraDistanceToY / Math.sqrt(2))
+    camera.lookAt(0, this.lookAtY, 0)
     scene = new THREE.Scene();
     scene.background = new THREE.Color().setHSL(0.6, 0, 1);
     scene.fog = new THREE.Fog(scene.background, 1, 5000);
@@ -289,13 +272,13 @@ export default class _3D {
     };
     uniforms.topColor.value.copy(hemiLight.color);
     scene.fog.color.copy(uniforms.bottomColor.value);
-    var skyGeo = new THREE.SphereBufferGeometry(2000, 32, 15);
+    var skyGeo = new THREE.SphereBufferGeometry(1000, 32, 15);
     var skyMat = new THREE.ShaderMaterial({ vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.BackSide });
     var sky = new THREE.Mesh(skyGeo, skyMat);
     scene.add(sky);
 
 
-    var geometry = new THREE.CubeGeometry(10, 10, 10)
+    var geometry = new THREE.CubeGeometry(40, 10, 40)
     var material = new THREE.MeshBasicMaterial({ color: 0xffff00 })
     this.cube = new THREE.Mesh(geometry, material)
     this.cube.castShadow = true
@@ -320,10 +303,13 @@ export default class _3D {
       let d = _x - x
       // 摄像机要旋转的圆心角
       let r = - d / window.innerWidth * Math.PI / 2
-      this.camera.position.z = 500 * Math.cos(r);
-      this.camera.position.x = 500 * Math.sin(r);
+      this.cameraRotation += r
+      this.cameraRotation %= (2 * Math.PI)  
+      // 由于摄像机半径比较大，旋转角度很小摄像机移动的也很快
+      this.camera.position.z = 500 * Math.cos(this.cameraRotation);
+      this.camera.position.x = 500 * Math.sin(this.cameraRotation);
       // 每次移动都要有这句话，不然就瞄歪了
-      this.camera.lookAt(0, 0, 0)
+      this.camera.lookAt(0, this.lookAtY, 0)
     }
     let end = (e) => {
       e.preventDefault()
