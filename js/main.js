@@ -6,7 +6,8 @@
 // import Music from './runtime/music'
 // import DataBus from './databus'
 // import THREE from './libs/three.min.js'
-let THREE = require('./libs/three.min.js')
+const THREE = require('./libs/three.min.js')
+const TWEEN = require('./libs/tween.js')
 // let ctx = canvas.getContext('2d')
 // let databus = new DataBus()
 
@@ -293,6 +294,7 @@ export default class _3D {
     renderer.shadowMap.enabled = true;
 
     // 场景控制
+    // 鼠标上一次所处的位置
     let x, y
     let move = (e) => {
       e.preventDefault()
@@ -301,20 +303,42 @@ export default class _3D {
       let _y = e.touches[0].clientY
 
       let d = _x - x
+      let k = 1
       // 摄像机要旋转的圆心角
-      let r = - d / window.innerWidth * Math.PI / 2
+      // 从整个屏幕横向划过可以旋转 π / k
+      let r = - d / window.innerWidth * Math.PI / k
       this.cameraRotation += r
       this.cameraRotation %= (2 * Math.PI)  
-      // 由于摄像机半径比较大，旋转角度很小摄像机移动的也很快
       this.camera.position.z = 500 * Math.cos(this.cameraRotation);
       this.camera.position.x = 500 * Math.sin(this.cameraRotation);
       // 每次移动都要有这句话，不然就瞄歪了
       this.camera.lookAt(0, this.lookAtY, 0)
+
+      x = _x
+      y = _y
     }
     let end = (e) => {
       e.preventDefault()
       canvas.removeEventListener('touchmove', move)
       canvas.removeEventListener('touchend', end)
+
+      // 触摸结束后的缓动效果
+      let unit = Math.PI / 2
+      let rest = this.cameraRotation % unit
+      let times = parseInt(this.cameraRotation / unit)
+      // 期望摄像机的旋转角度是90度的整数倍
+      if (rest > Math.PI / 4) this.cameraRotation = unit * ++times
+      else this.cameraRotation = unit * times
+
+      // create the tween
+      let tween = new TWEEN.Tween(this.camera.position)
+        .to({ x: 500 * Math.sin(this.cameraRotation), z: 500 * Math.cos(this.cameraRotation) }, 1000)
+        .start();
+
+      // this.camera.position.z = 500 * Math.cos(this.cameraRotation);
+      // this.camera.position.x = 500 * Math.sin(this.cameraRotation);
+      // 每次移动都要有这句话，不然就瞄歪了
+      this.camera.lookAt(0, this.lookAtY, 0)
     }
     canvas.addEventListener('touchstart', ((e) => {
       e.preventDefault()
