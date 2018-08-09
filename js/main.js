@@ -194,7 +194,7 @@ export default class _3D {
     this.cameraHeight = this.lookAtY + 100 
     this.cameraDistanceToY = 500
     // 摄像机旋转的总角度
-    this.cameraRotation = Math.PI / 4
+    this.cameraRotation = 0
 
     // 摄像机
     // 正射摄像头
@@ -202,7 +202,8 @@ export default class _3D {
     let k = 200
     camera = new THREE.OrthographicCamera( - k * aspect, k * aspect, k, - k, 0.1, 10000);
     // camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 5000);
-    camera.position.set(this.cameraDistanceToY / Math.sqrt(2), this.cameraHeight, this.cameraDistanceToY / Math.sqrt(2))
+    // camera.position.set(this.cameraDistanceToY / Math.sqrt(2), this.cameraHeight, this.cameraDistanceToY / Math.sqrt(2))
+    camera.position.set(0, this.cameraHeight, this.cameraDistanceToY)
     camera.lookAt(0, this.lookAtY, 0)
     scene = new THREE.Scene();
     scene.background = new THREE.Color().setHSL(0.6, 0, 1);
@@ -219,32 +220,32 @@ export default class _3D {
     scene.add(hemiLightHelper);
     
     // 平行光
-    dirLight = new THREE.DirectionalLight(0xffffff, 1);
-    dirLight.color.setHSL(0.1, 1, 0.95);
-    dirLight.position.set(-1, 1.75, 1);
-    dirLight.position.multiplyScalar(30);
-    scene.add(dirLight);
-    dirLight.castShadow = true;
-    dirLight.shadow.mapSize.width = 2048;
-    dirLight.shadow.mapSize.height = 2048;
-    var d = 50;
-    dirLight.shadow.camera.left = -d;
-    dirLight.shadow.camera.right = d;
-    dirLight.shadow.camera.top = d;
-    dirLight.shadow.camera.bottom = -d;
-    dirLight.shadow.camera.far = 3500;
-    dirLight.shadow.bias = -0.0001;
-    dirLightHeper = new THREE.DirectionalLightHelper(dirLight, 10);
-    scene.add(dirLightHeper);
+    dirLight = new THREE.DirectionalLight(0xffffff, 1)
+    dirLight.color.setHSL(0.1, 1, 0.95)
+    dirLight.position.set(-1, 1.75, 1)
+    dirLight.position.multiplyScalar(30)
+    scene.add(dirLight)
+    dirLight.castShadow = true
+    dirLight.shadow.mapSize.width = 2048
+    dirLight.shadow.mapSize.height = 2048
+    var d = 50
+    dirLight.shadow.camera.left = -d
+    dirLight.shadow.camera.right = d
+    dirLight.shadow.camera.top = d
+    dirLight.shadow.camera.bottom = -d
+    dirLight.shadow.camera.far = 3500
+    dirLight.shadow.bias = -0.0001
+    dirLightHeper = new THREE.DirectionalLightHelper(dirLight, 10)
+    scene.add(dirLightHeper)
 
     // GROUND
-    var groundGeo = new THREE.PlaneBufferGeometry(4000, 4000);
-    var groundMat = new THREE.MeshPhongMaterial({ color: 0xff00f0, specular: 0x050505 }); 
-    groundMat.color.setHSL(0.095, 1, 0.75);
-    var ground = new THREE.Mesh(groundGeo, groundMat);
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -33;
-    scene.add(ground);
+    var groundGeo = new THREE.PlaneBufferGeometry(4000, 4000)
+    var groundMat = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x050505 })
+    groundMat.color.setHSL(0.095, 1, 0.75)
+    var ground = new THREE.Mesh(groundGeo, groundMat)
+    ground.rotation.x = -Math.PI / 2
+    ground.position.y = -33
+    scene.add(ground)
     ground.receiveShadow = true;
 
     // 渲染天空的着色器
@@ -253,7 +254,7 @@ export default class _3D {
 				vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
 				vWorldPosition = worldPosition.xyz;
 				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-			}`;
+			}`
     var fragmentShader = `
     			uniform vec3 topColor;
 			uniform vec3 bottomColor;
@@ -263,8 +264,7 @@ export default class _3D {
 			void main() {
 				float h = normalize( vWorldPosition + offset ).y;
 				gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
-			}
-    `;
+			}`
     var uniforms = {
       topColor: { value: new THREE.Color(0x0077ff) },
       bottomColor: { value: new THREE.Color(0xffffff) },
@@ -278,13 +278,17 @@ export default class _3D {
     var sky = new THREE.Mesh(skyGeo, skyMat);
     scene.add(sky);
 
+    // 场景内的最顶层节点
+    this.world = new THREE.Group()
+    this.world.rotation.y = Math.PI / 4
+    scene.add(this.world)
 
     var geometry = new THREE.CubeGeometry(40, 10, 40)
     var material = new THREE.MeshBasicMaterial({ color: 0xffff00 })
     this.cube = new THREE.Mesh(geometry, material)
     this.cube.castShadow = true
     this.cube.position.y = -28
-    scene.add(this.cube)
+    this.world.add(this.cube)
 
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -326,13 +330,21 @@ export default class _3D {
       let unit = Math.PI / 2
       let rest = this.cameraRotation % unit
       let times = parseInt(this.cameraRotation / unit)
+      let target
       // 期望摄像机的旋转角度是90度的整数倍
-      if (rest > Math.PI / 4) this.cameraRotation = unit * ++times
-      else this.cameraRotation = unit * times
+      if (rest > Math.PI / 4) target = unit * ++times
+      else target = unit * times
 
       // create the tween
-      let tween = new TWEEN.Tween(this.camera.position)
-        .to({ x: 500 * Math.sin(this.cameraRotation), z: 500 * Math.cos(this.cameraRotation) }, 1000)
+      // 小程序中的 Date.now()被重写，变成秒了，tween 中引用了这个时间，所以单位也是秒
+      let tween = new TWEEN.Tween(this)
+        .to({ cameraRotation: target }, 0.1)
+        .onUpdate(()=>{
+          this.camera.position.z = 500 * Math.cos(this.cameraRotation);
+          this.camera.position.x = 500 * Math.sin(this.cameraRotation);
+          // 每次移动都要有这句话，不然就瞄歪了
+          this.camera.lookAt(0, this.lookAtY, 0)
+        })
         .start();
 
       // this.camera.position.z = 500 * Math.cos(this.cameraRotation);
@@ -365,6 +377,7 @@ export default class _3D {
   }
   loop() {
     this.update()
+    TWEEN.update()
     this.renderer.render(this.scene, this.camera)
     window.requestAnimationFrame(this.loop.bind(this), canvas)
   }
