@@ -238,14 +238,18 @@ export default class _3D {
     dirLightHeper = new THREE.DirectionalLightHelper(dirLight, 10)
     scene.add(dirLightHeper)
 
+    // 场景内的最顶层节点
+    this.world = new THREE.Group()
+    this.world.rotation.y = Math.PI / 4
+    scene.add(this.world)
+
     // GROUND
-    var groundGeo = new THREE.PlaneBufferGeometry(4000, 4000)
+    var groundGeo = new THREE.CubeGeometry(140, 100, 140)
     var groundMat = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x050505 })
     groundMat.color.setHSL(0.095, 1, 0.75)
     var ground = new THREE.Mesh(groundGeo, groundMat)
-    ground.rotation.x = -Math.PI / 2
-    ground.position.y = -33
-    scene.add(ground)
+    ground.position.y = -83
+    this.world.add(ground)
     ground.receiveShadow = true;
 
     // 渲染天空的着色器
@@ -266,8 +270,10 @@ export default class _3D {
 				gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
 			}`
     var uniforms = {
-      topColor: { value: new THREE.Color(0x0077ff) },
-      bottomColor: { value: new THREE.Color(0xffffff) },
+      // topColor: { value: new THREE.Color(0x0077ff) },
+      // bottomColor: { value: new THREE.Color(0xffffff) },
+      topColor: { value: new THREE.Color(0x000000) },
+      bottomColor: { value: new THREE.Color(0x000000) },
       offset: { value: 33 },
       exponent: { value: 0.6 }
     };
@@ -278,13 +284,8 @@ export default class _3D {
     var sky = new THREE.Mesh(skyGeo, skyMat);
     scene.add(sky);
 
-    // 场景内的最顶层节点
-    this.world = new THREE.Group()
-    this.world.rotation.y = Math.PI / 4
-    scene.add(this.world)
-
     var geometry = new THREE.CubeGeometry(40, 10, 40)
-    var material = new THREE.MeshBasicMaterial({ color: 0xffff00 })
+    var material = new THREE.MeshBasicMaterial({ color: 0x000000 })
     this.cube = new THREE.Mesh(geometry, material)
     this.cube.castShadow = true
     this.cube.position.y = -28
