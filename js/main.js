@@ -6,10 +6,85 @@
 // import Music from './runtime/music'
 // import DataBus from './databus'
 // import THREE from './libs/three.min.js'
+// 游戏世界的顶层节点
+import World from './runtime/world.js'
+// 天空（灯光）
+import sky from './runtime/sky.js'
 const THREE = require('./libs/three.min.js')
 const TWEEN = require('./libs/tween.js')
 // let ctx = canvas.getContext('2d')
 // let databus = new DataBus()
+
+
+/**
+ * 游戏主函数
+ */
+export default class _3D {
+
+  constructor() {
+    var camera, scene, renderer, dirLight, dirLightHeper, hemiLight, hemiLightHelper;
+
+    // 摄像机目标点的y值，xz为0
+    this.lookAtY = 100
+    this.cameraHeight = this.lookAtY + 100 
+    this.cameraDistanceToY = 500
+    // 摄像机旋转的总角度
+    this.cameraRotation = 0
+
+    // 摄像机
+    // 正射摄像头
+    let aspect = window.innerWidth / window.innerHeight
+    let k = 200
+    camera = new THREE.OrthographicCamera( - k * aspect, k * aspect, k, - k, 0.1, 10000);
+    // camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 5000);
+    // camera.position.set(this.cameraDistanceToY / Math.sqrt(2), this.cameraHeight, this.cameraDistanceToY / Math.sqrt(2))
+    camera.position.set(0, this.cameraHeight, this.cameraDistanceToY)
+    camera.lookAt(0, this.lookAtY, 0)
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color().setHSL(0.6, 0, 1);
+    scene.fog = new THREE.Fog(scene.background, 1, 5000);
+
+    // 添加天空和光照
+    sky( scene )
+
+    // 场景内的最顶层节点
+    this.world = new World()
+    scene.add(this.world)
+
+    // 渲染器
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.gammaInput = true;
+    renderer.gammaOutput = true;
+    renderer.shadowMap.enabled = true;
+
+    this.scene = scene
+    this.camera = camera
+    this.renderer = renderer
+
+    // 记录当前帧数
+    this.frameId = 1
+
+    window.requestAnimationFrame(this.loop.bind(this), canvas)
+  }
+
+  /**
+   * 更新
+   */
+  update() {
+    this.frameId++
+    if( this.frameId % 8 === 0 ) {
+      this.world.next()
+    }
+  }
+  loop() {
+    this.update()
+    TWEEN.update()
+    this.renderer.render(this.scene, this.camera)
+    window.requestAnimationFrame(this.loop.bind(this), canvas)
+  }
+}
 
 /**
  * 游戏主函数(微信小游戏官方示例，面向对象的架构)
@@ -177,209 +252,5 @@ class Main {
       this.bindLoop,
       canvas
     )
-  }
-}
-
-
-/**
- * 游戏主函数
- */
-export default class _3D {
-
-  constructor() {
-    var camera, scene, renderer, dirLight, dirLightHeper, hemiLight, hemiLightHelper;
-
-    // 摄像机目标点的y值，xz为0
-    this.lookAtY = 100
-    this.cameraHeight = this.lookAtY + 100 
-    this.cameraDistanceToY = 500
-    // 摄像机旋转的总角度
-    this.cameraRotation = 0
-
-    // 摄像机
-    // 正射摄像头
-    let aspect = window.innerWidth / window.innerHeight
-    let k = 200
-    camera = new THREE.OrthographicCamera( - k * aspect, k * aspect, k, - k, 0.1, 10000);
-    // camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 5000);
-    // camera.position.set(this.cameraDistanceToY / Math.sqrt(2), this.cameraHeight, this.cameraDistanceToY / Math.sqrt(2))
-    camera.position.set(0, this.cameraHeight, this.cameraDistanceToY)
-    camera.lookAt(0, this.lookAtY, 0)
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color().setHSL(0.6, 0, 1);
-    scene.fog = new THREE.Fog(scene.background, 1, 5000);
-
-    // LIGHTS
-    // 半球光
-    hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.6);
-    hemiLight.color.setHSL(0.6, 1, 0.6);
-    hemiLight.groundColor.setHSL(0.095, 1, 0.75);
-    hemiLight.position.set(0, 50, 0);
-    scene.add(hemiLight);
-    hemiLightHelper = new THREE.HemisphereLightHelper(hemiLight, 10);
-    scene.add(hemiLightHelper);
-    
-    // 平行光
-    dirLight = new THREE.DirectionalLight(0xffffff, 1)
-    dirLight.color.setHSL(0.1, 1, 0.95)
-    dirLight.position.set(-1, 1.75, 1)
-    dirLight.position.multiplyScalar(30)
-    scene.add(dirLight)
-    dirLight.castShadow = true
-    dirLight.shadow.mapSize.width = 2048
-    dirLight.shadow.mapSize.height = 2048
-    var d = 50
-    dirLight.shadow.camera.left = -d
-    dirLight.shadow.camera.right = d
-    dirLight.shadow.camera.top = d
-    dirLight.shadow.camera.bottom = -d
-    dirLight.shadow.camera.far = 3500
-    dirLight.shadow.bias = -0.0001
-    dirLightHeper = new THREE.DirectionalLightHelper(dirLight, 10)
-    scene.add(dirLightHeper)
-
-    // 场景内的最顶层节点
-    this.world = new THREE.Group()
-    this.world.rotation.y = Math.PI / 4
-    scene.add(this.world)
-
-    // GROUND
-    var groundGeo = new THREE.CubeGeometry(140, 100, 140)
-    var groundMat = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x050505 })
-    groundMat.color.setHSL(0.095, 1, 0.75)
-    var ground = new THREE.Mesh(groundGeo, groundMat)
-    ground.position.y = -83
-    this.world.add(ground)
-    ground.receiveShadow = true;
-
-    // 渲染天空的着色器
-    var vertexShader = `varying vec3 vWorldPosition;
-			void main() {
-				vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
-				vWorldPosition = worldPosition.xyz;
-				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-			}`
-    var fragmentShader = `
-    			uniform vec3 topColor;
-			uniform vec3 bottomColor;
-			uniform float offset;
-			uniform float exponent;
-			varying vec3 vWorldPosition;
-			void main() {
-				float h = normalize( vWorldPosition + offset ).y;
-				gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
-			}`
-    var uniforms = {
-      // topColor: { value: new THREE.Color(0x0077ff) },
-      // bottomColor: { value: new THREE.Color(0xffffff) },
-      topColor: { value: new THREE.Color(0x000000) },
-      bottomColor: { value: new THREE.Color(0x000000) },
-      offset: { value: 33 },
-      exponent: { value: 0.6 }
-    };
-    uniforms.topColor.value.copy(hemiLight.color);
-    scene.fog.color.copy(uniforms.bottomColor.value);
-    var skyGeo = new THREE.SphereBufferGeometry(1000, 32, 15);
-    var skyMat = new THREE.ShaderMaterial({ vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.BackSide });
-    var sky = new THREE.Mesh(skyGeo, skyMat);
-    scene.add(sky);
-
-    var geometry = new THREE.CubeGeometry(40, 10, 40)
-    var material = new THREE.MeshBasicMaterial({ color: 0x000000 })
-    this.cube = new THREE.Mesh(geometry, material)
-    this.cube.castShadow = true
-    this.cube.position.y = -28
-    this.world.add(this.cube)
-
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.gammaInput = true;
-    renderer.gammaOutput = true;
-    renderer.shadowMap.enabled = true;
-
-    // 场景控制
-    // 鼠标上一次所处的位置
-    let x, y
-    let move = (e) => {
-      e.preventDefault()
-
-      let _x = e.touches[0].clientX
-      let _y = e.touches[0].clientY
-
-      let d = _x - x
-      let k = 1
-      // 摄像机要旋转的圆心角
-      // 从整个屏幕横向划过可以旋转 π / k
-      let r = - d / window.innerWidth * Math.PI / k
-      this.cameraRotation += r
-      this.cameraRotation %= (2 * Math.PI)  
-      this.camera.position.z = 500 * Math.cos(this.cameraRotation);
-      this.camera.position.x = 500 * Math.sin(this.cameraRotation);
-      // 每次移动都要有这句话，不然就瞄歪了
-      this.camera.lookAt(0, this.lookAtY, 0)
-
-      x = _x
-      y = _y
-    }
-    let end = (e) => {
-      e.preventDefault()
-      canvas.removeEventListener('touchmove', move)
-      canvas.removeEventListener('touchend', end)
-
-      // 触摸结束后的缓动效果
-      let unit = Math.PI / 2
-      let rest = this.cameraRotation % unit
-      let times = parseInt(this.cameraRotation / unit)
-      let target
-      // 期望摄像机的旋转角度是90度的整数倍
-      if (rest > Math.PI / 4) target = unit * ++times
-      else target = unit * times
-
-      // create the tween
-      // 小程序中的 Date.now()被重写，变成秒了，tween 中引用了这个时间，所以单位也是秒
-      let tween = new TWEEN.Tween(this)
-        .to({ cameraRotation: target }, 0.1)
-        .onUpdate(()=>{
-          this.camera.position.z = 500 * Math.cos(this.cameraRotation);
-          this.camera.position.x = 500 * Math.sin(this.cameraRotation);
-          // 每次移动都要有这句话，不然就瞄歪了
-          this.camera.lookAt(0, this.lookAtY, 0)
-        })
-        .start();
-
-      // this.camera.position.z = 500 * Math.cos(this.cameraRotation);
-      // this.camera.position.x = 500 * Math.sin(this.cameraRotation);
-      // 每次移动都要有这句话，不然就瞄歪了
-      this.camera.lookAt(0, this.lookAtY, 0)
-    }
-    canvas.addEventListener('touchstart', ((e) => {
-      e.preventDefault()
-
-      x = e.touches[0].clientX
-      y = e.touches[0].clientY
-
-      canvas.addEventListener('touchmove', move)
-      canvas.addEventListener('touchend', end)
-
-    }).bind(this))
-
-    this.scene = scene
-    this.camera = camera
-    this.renderer = renderer
-
-
-
-    window.requestAnimationFrame(this.loop.bind(this), canvas)
-  }
-
-  update() {
-    // System.rotation(this.rotation)
-  }
-  loop() {
-    this.update()
-    TWEEN.update()
-    this.renderer.render(this.scene, this.camera)
-    window.requestAnimationFrame(this.loop.bind(this), canvas)
   }
 }
