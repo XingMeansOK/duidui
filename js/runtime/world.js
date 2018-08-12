@@ -1,8 +1,8 @@
 const THREE = require('../libs/three.min.js')
 const TWEEN = require('../libs/tween.js')
 import regeneratorRuntime from '../libs/regenerator-runtime';
-import { CUBESIDE } from '../constants.js'
-import { CCube, BCube } from '../player/cubes.js'
+import { CUBESIDE, MULTIPLE } from '../constants.js'
+import { CCube, BCube, SCube } from '../player/cubes.js'
 // 地面平台的宽高
 const SIDE = 140
 const HEIGHT = 200
@@ -20,7 +20,8 @@ export default class World extends THREE.Group {
     // GROUND
     var groundGeo = new THREE.CubeGeometry(SIDE, HEIGHT, SIDE)
     var groundMat = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x050505 })
-    groundMat.color.setHSL(0.095, 1, 0.75)
+    // 这个属性是啥？？？
+    // groundMat.color.setHSL(0.095, 1, 0.75)
     var ground = new THREE.Mesh(groundGeo, groundMat)
     ground.position.y = -(HEIGHT + CUBESIDE) / 2
     this.add(ground)
@@ -30,6 +31,20 @@ export default class World extends THREE.Group {
     // 初始旋转角度
     this.rotation.y = ROTATION
 
+    // 鼠标交互
+    // this.interaction()
+    this.bindJump()
+
+    // 初始化方块
+    this.initCube()
+    // 当前点亮的 cube 和上一个点亮的 cube
+    this.lighting = this.lastLighting = this.ccubes[0]
+  }
+
+  /**
+   * 添加场景触摸交互
+   */
+  interaction() {
     // 场景控制
     // 鼠标上一次所处的位置
     let x, y, mouseVector = new THREE.Vector3(), raycaster = new THREE.Raycaster()
@@ -97,13 +112,19 @@ export default class World extends THREE.Group {
 
 
     }).bind(this))
-
-    // 初始化方块
-    this.initCube()
-    // 当前点亮的 cube 和上一个点亮的 cube
-    this.lighting = this.lastLighting = this.bcube
   }
-  
+
+  /**
+   * 点击屏幕，SCube跳跃
+   */
+  bindJump () {
+    canvas.addEventListener('touchstart', ((e) => {
+      e.preventDefault()
+
+      if(this.scube.jumping) this.scube.jump2()
+      else this.scube.jump()
+    }).bind(this))
+  }
   /**
    * 初始化所有方块
    */
@@ -112,7 +133,10 @@ export default class World extends THREE.Group {
     this.pos = require('../test/pos1.js').default
     var {ccpos, bcpos} = this.pos
     this.initCCube(ccpos)
-    this.initBCube(bcpos)
+    // this.initBCube(bcpos)
+    // 运动块
+    this.scube = new SCube()
+    this.add(this.scube)
   }
   /**
    * 初始化导体方块
@@ -123,20 +147,25 @@ export default class World extends THREE.Group {
     this.ccpos = pos.map( (coordinates) => {
       // 原始的位置最小单位是1，需要转换为方块的边长
       return coordinates.map( component => {
-        return component * CUBESIDE * 1.1
+        return component * CUBESIDE * MULTIPLE
       })
     })
     // 导体方块指针数组
-    this.ccubes = []
-    this.ccpos.forEach( pos => {
-      // 随机生成多个
-      // let num = this.getRandomInt(1, 4)
-      let num = 4
-      for(let i = 0; i < num; i++) {
-        let cc = new CCube([ pos[0], CUBESIDE * i * 1.1, pos[2] ])
-        this.add(cc)
-        this.ccubes.push(cc)
-      }
+    // this.ccubes = []
+    // this.ccpos.forEach( pos => {
+    //   // 随机生成多个
+    //   // let num = this.getRandomInt(1, 4)
+    //   let num = 4
+    //   for(let i = 0; i < num; i++) {
+    //     let cc = new CCube([ pos[0], CUBESIDE * i * 1.1, pos[2] ])
+    //     this.add(cc)
+    //     this.ccubes.push(cc)
+    //   }
+    // })
+    this.ccubes = this.ccpos.map(pos => {
+      let cc = new CCube(pos)
+      this.add(cc)
+      return cc
     })
   }
 
@@ -155,7 +184,7 @@ export default class World extends THREE.Group {
   initBCube(pos) {
     // 电源方块的位置数组
     this.bcpos = pos.map(component => {
-      return component * CUBESIDE * 1.1
+      return component * CUBESIDE * MULTIPLE
     })
 
     this.bcube = new BCube(this.bcpos)
@@ -169,7 +198,7 @@ export default class World extends THREE.Group {
   next() {
     // 到当前点亮的导体块的距离小于CUBESIDE
     let next = this.ccubes.find( cc => {
-      return this.lighting.position.distanceTo( cc.position ) < CUBESIDE * 1.2 
+      return this.lighting.position.distanceTo(cc.position) < CUBESIDE * (MULTIPLE + 0.1) 
         && cc !== this.lastLighting
         && cc !== this.lighting
     })

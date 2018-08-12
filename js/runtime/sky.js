@@ -56,8 +56,8 @@ export default function sky( scene ) {
     // topColor: { value: new THREE.Color(0x0077ff) },
     // bottomColor: { value: new THREE.Color(0xffffff) },
     topColor: { value: new THREE.Color(0xffffff) },
-    bottomColor: { value: new THREE.Color(0x00ffff) },
-    offset: { value: 33 },
+    bottomColor: { value: new THREE.Color(0x9fffff) },
+    offset: { value: 330 },
     exponent: { value: 0.6 }
   };
   // uniforms.topColor.value.copy(hemiLight.color);
