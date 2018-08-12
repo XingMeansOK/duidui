@@ -26,7 +26,7 @@ export default function sky( scene ) {
   dirLight.castShadow = true
   dirLight.shadow.mapSize.width = 2048
   dirLight.shadow.mapSize.height = 2048
-  var d = 50
+  var d = 100
   dirLight.shadow.camera.left = -d
   dirLight.shadow.camera.right = d
   dirLight.shadow.camera.top = d
@@ -43,8 +43,7 @@ export default function sky( scene ) {
 				vWorldPosition = worldPosition.xyz;
 				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 			}`
-  var fragmentShader = `
-    			uniform vec3 topColor;
+  var fragmentShader = `uniform vec3 topColor;
 			uniform vec3 bottomColor;
 			uniform float offset;
 			uniform float exponent;
@@ -64,7 +63,7 @@ export default function sky( scene ) {
   // uniforms.topColor.value.copy(hemiLight.color);
   scene.fog.color.copy(uniforms.bottomColor.value);
   var skyGeo = new THREE.SphereBufferGeometry(500, 32, 15);
-  var skyMat = new THREE.ShaderMaterial({ vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.BackSide });
-  var sky = new THREE.Mesh(skyGeo, skyMat);
+  var skyMat = new THREE.ShaderMaterial({ vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.BackSide })
+  var sky = new THREE.Mesh(skyGeo, skyMat)
   scene.add(sky);
 }

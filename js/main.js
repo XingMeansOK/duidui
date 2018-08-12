@@ -26,7 +26,7 @@ export default class _3D {
 
     // 摄像机目标点的y值，xz为0
     this.lookAtY = 100
-    this.cameraHeight = this.lookAtY + 100 
+    this.cameraHeight = this.lookAtY + 200 
     this.cameraDistanceToY = 500
     // 摄像机旋转的总角度
     this.cameraRotation = 0
@@ -48,7 +48,8 @@ export default class _3D {
     sky( scene )
 
     // 场景内的最顶层节点
-    this.world = new World()
+    // 传入摄像机，用于射线检测
+    this.world = new World(camera)
     scene.add(this.world)
 
     // 渲染器

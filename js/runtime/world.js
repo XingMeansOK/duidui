@@ -13,9 +13,10 @@ const ROTATION = Math.PI / 4
 
 // scene 下游戏世界最顶层节点
 export default class World extends THREE.Group {
-  constructor() {
+  constructor(camera) {
     super()
 
+    this.camera = camera
     // GROUND
     var groundGeo = new THREE.CubeGeometry(SIDE, HEIGHT, SIDE)
     var groundMat = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x050505 })
@@ -24,13 +25,14 @@ export default class World extends THREE.Group {
     ground.position.y = -(HEIGHT + CUBESIDE) / 2
     this.add(ground)
     ground.receiveShadow = true;
+    ground.name = 'ground'
 
     // 初始旋转角度
     this.rotation.y = ROTATION
 
     // 场景控制
     // 鼠标上一次所处的位置
-    let x, y
+    let x, y, mouseVector = new THREE.Vector3(), raycaster = new THREE.Raycaster()
     let move = (e) => {
       e.preventDefault()
 
@@ -76,9 +78,23 @@ export default class World extends THREE.Group {
 
       x = e.touches[0].clientX
       y = e.touches[0].clientY
+      // 射线检测
+      mouseVector.set(
+        (x / window.innerWidth) * 2 - 1, - (y / window.innerHeight) * 2 + 1,
+        0.5);
+      raycaster.setFromCamera(mouseVector, this.camera);
+      var intersects = raycaster.intersectObjects([this], true);
+      if (intersects.length > 0) {
+        var res = intersects.filter(function (res) {
+          return res && res.object;
+        })[0];
+        if (res && res.object && res.object.name === 'ground') {
+          canvas.addEventListener('touchmove', move)
+          canvas.addEventListener('touchend', end)
+        }
+      }
 
-      canvas.addEventListener('touchmove', move)
-      canvas.addEventListener('touchend', end)
+
 
     }).bind(this))
 
@@ -111,11 +127,26 @@ export default class World extends THREE.Group {
       })
     })
     // 导体方块指针数组
-    this.ccubes = this.ccpos.map( pos => {
-      let cc = new CCube(pos)
-      this.add( cc )
-      return cc
+    this.ccubes = []
+    this.ccpos.forEach( pos => {
+      // 随机生成多个
+      // let num = this.getRandomInt(1, 4)
+      let num = 4
+      for(let i = 0; i < num; i++) {
+        let cc = new CCube([ pos[0], CUBESIDE * i * 1.1, pos[2] ])
+        this.add(cc)
+        this.ccubes.push(cc)
+      }
     })
+  }
+
+  /**
+   * 获取区间内的随机数
+   */
+  getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
   }
 
   /**

@@ -1,4 +1,4 @@
-const CUBESIDE = 20 // 方块边长
+const CUBESIDE = 23 // 方块边长
 
 export {
   CUBESIDE

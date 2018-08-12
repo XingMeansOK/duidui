@@ -13,6 +13,7 @@ class Cube extends THREE.Mesh {
   constructor(pos) {
     super()
     this.castShadow = true
+    this.receiveShadow = true;
     // 初始化位置
     this.position.set(...pos)
     // 保存位置数组的指针
@@ -25,7 +26,22 @@ class Cube extends THREE.Mesh {
 class CCube extends Cube {
   constructor(pos) {
     super(pos)
-    this.material = new THREE.MeshBasicMaterial({ color: { r: 0.3, g: 0.3, b: 0.3 } })
+    var beta = 0.4
+    var alpha = 0.6
+    var gamma = 0.6
+    var specularColor = new THREE.Color(beta * 0.2, beta * 0.2, beta * 0.2);
+    var diffuseColor = new THREE.Color().setHSL(alpha, 0.5, gamma * 0.5 + 0.1).multiplyScalar(1 - beta * 0.2);
+    this.material = new THREE.MeshToonMaterial({
+      // map: imgTexture,
+      // bumpMap: imgTexture,
+      // bumpScale: bumpScale,
+      color: diffuseColor,
+      // specular: specularColor,
+      // reflectivity: beta,
+      // shininess: specularShininess,
+      // envMap: alphaIndex % 2 === 0 ? null : reflectionCube
+    });
+    // this.material = new THREE.MeshBasicMaterial({ color: { r: 0.3, g: 0.3, b: 0.3 } })
   }
   /**
    * 闪烁动画
