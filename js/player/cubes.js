@@ -22,20 +22,31 @@ class Cube extends THREE.Mesh {
 
 // 导体方块
 class CCube extends Cube {
-  constructor(pos) {
+  constructor(pos, isTransparent) {
     super(pos)
     this.material = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x050505 })
+    this.material.transparent = !!isTransparent
+    if (!!isTransparent) {
+      this.material.opacity = 0
+      this.castShadow = false
+      this.receiveShadow = false;
+    }
   }
   /**
    * 闪烁动画
    */
   twinkle() {
     let tween = new TWEEN.Tween(this.material.color)
-      .to({ r: 1,g: 1, b:1 }, 0.1)
+      .to({ r: 0,g: 1, b:1 }, 0.1)
+      .onStart(() => {
+        this.material.transparent && (this.material.opacity = 1)
+      })
 
-      // .repeat(Infinity)
     let tweenBack = new TWEEN.Tween(this.material.color)
-      .to({ r: 0.3, g: 0.3, b: 0.3 }, 0.7)
+      .to({ r: 1, g: 1, b: 1 }, 0.7)
+      .onComplete(() => {
+        this.material.transparent && (this.material.opacity = 0)
+      })
 
     tween.chain(tweenBack)
 

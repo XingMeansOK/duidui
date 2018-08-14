@@ -1,26 +1,30 @@
+// 生成 x ✖️ y ✖️ z 的矩阵
+var p = (function (x, y, z) {
 
-var p = (function(col, row) {
-  col = parseInt( col / 2 )
-  row = parseInt( row / 2 )
-  // 导体方块的坐标
-  let ccpos = []
+  x = parseInt( x / 2 )
+  z = parseInt(z / 2)
   // 电源块坐标 
   let bcpos = [2, 1, 0]
-  for( let i = 0; i <= row; i++ ) {
-    for (let j = 0; j <= col; j++) {
-      ccpos.push([j, 0, i])
-      j && ccpos.push([-j, 0, i])
+  // 导体方块的坐标
+  let ccpos = []
+  for( let h = 0; h < y; h++ ) {
+    for (let i = 0; i <= x; i++) {
+      for (let j = 0; j <= z; j++) {
+        ccpos.push([j, h, i])
+        j && ccpos.push([-j, h, i])
 
-      if(i) {
-        ccpos.push([j, 0, -i])
-        j && ccpos.push([-j, 0, -i])
+        if (i) {
+          ccpos.push([j, h, -i])
+          j && ccpos.push([-j, h, -i])
+        }
       }
     }
   }
+
   return {
     ccpos,
     bcpos
   }
-}(5, 5))
+}(5, 5, 5))
 
 export default p

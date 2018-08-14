@@ -153,33 +153,23 @@ export default class World extends THREE.Group {
     // 按照位置保存ccube的引用
     this.ccubeBox = {}
     // 导体方块指针数组
-    // this.ccubes = []
-    // this.ccpos.forEach( pos => {
-    //   // 随机生成多个
-    //   // let num = this.getRandomInt(1, 4)
-    //   let num = 4
-    //   for(let i = 0; i < num; i++) {
-    //     let cc = new CCube([ pos[0], CUBESIDE * i * 1.1, pos[2] ])
-    //     this.add(cc)
-    //     this.ccubes.push(cc)
-    //   }
-    // })
     this.ccubes = pos.map(coordinates => {
-      let x = coordinates[0], z = coordinates[2]
+      let x = coordinates[0], y = coordinates[1], z = coordinates[2]
       // 原始的位置最小单位是1，需要转换为方块的边长
       let loc = coordinates.map( component => {
         return component * CUBESIDE * MULTIPLE
       })
-      let cc = new CCube(loc)
+      let cc = new CCube(loc, y)
       this.add(cc)
-      // 例如，位于（1,0,1）的ccube可以通过ccubeBox['11']获取
-      this.ccubeBox[x + '' + z] = cc
+      // 例如，位于（1,0,1）的ccube可以通过ccubeBox['101']获取
+      this.ccubeBox[`${x}${y}${z}`] = cc
       return cc
     })
   }
 
   /**
    * 获取区间内的随机数
+   * [)
    */
   getRandomInt(min, max) {
     min = Math.ceil(min);
@@ -204,7 +194,7 @@ export default class World extends THREE.Group {
   /**
    * 变更点亮的导体块
    */
-  next() {
+  _next() {
     // 到当前点亮的导体块的距离小于CUBESIDE
     let next = this.ccubes.find( cc => {
       return this.lighting.position.distanceTo(cc.position) < CUBESIDE * (MULTIPLE + 0.1) 
@@ -216,6 +206,23 @@ export default class World extends THREE.Group {
     // 如果到头了就原地返回
     this.lighting = next || temp
     this.lighting.twinkle()
+  }
+
+
+/**
+ * 变更点亮的导体块
+ */
+  next() {
+    let x = this.getRandomInt(-2, 3)
+    let y = this.getRandomInt(0, 5)
+    let z = this.getRandomInt(-2, 3)
+    // 到当前点亮的导体块的距离小于CUBESIDE
+    try {
+      this.ccubeBox[`${x}${y}${z}`].twinkle()
+    } catch(e) {
+      console.log(`${x}${y}${z}`)
+    }
+
   }
 }
 
