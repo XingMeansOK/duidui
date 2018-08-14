@@ -143,13 +143,15 @@ export default class World extends THREE.Group {
    * @param [Array] pos 导体方块的位置数组，元素还是数组
    */
   initCCube(pos) {
-    // 导体方块的位置数组
-    this.ccpos = pos.map( (coordinates) => {
-      // 原始的位置最小单位是1，需要转换为方块的边长
-      return coordinates.map( component => {
-        return component * CUBESIDE * MULTIPLE
-      })
-    })
+    // // 导体方块的位置数组
+    // this.ccpos = pos.map( (coordinates) => {
+    //   // 原始的位置最小单位是1，需要转换为方块的边长
+    //   return coordinates.map( component => {
+    //     return component * CUBESIDE * MULTIPLE
+    //   })
+    // })
+    // 按照位置保存ccube的引用
+    this.ccubeBox = {}
     // 导体方块指针数组
     // this.ccubes = []
     // this.ccpos.forEach( pos => {
@@ -162,9 +164,16 @@ export default class World extends THREE.Group {
     //     this.ccubes.push(cc)
     //   }
     // })
-    this.ccubes = this.ccpos.map(pos => {
-      let cc = new CCube(pos)
+    this.ccubes = pos.map(coordinates => {
+      let x = coordinates[0], z = coordinates[2]
+      // 原始的位置最小单位是1，需要转换为方块的边长
+      let loc = coordinates.map( component => {
+        return component * CUBESIDE * MULTIPLE
+      })
+      let cc = new CCube(loc)
       this.add(cc)
+      // 例如，位于（1,0,1）的ccube可以通过ccubeBox['11']获取
+      this.ccubeBox[x + '' + z] = cc
       return cc
     })
   }

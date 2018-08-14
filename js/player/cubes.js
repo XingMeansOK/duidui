@@ -71,7 +71,7 @@ class SCube extends Cube {
     this.jumping = false
 
     // 开始跑
-    this.run()
+    // this.run()
     this.add(new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0,0,0), 39, 0xffff00))
   }
   /**

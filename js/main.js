@@ -76,7 +76,7 @@ export default class _3D {
   update() {
     this.frameId++
     if( this.frameId % 8 === 0 ) {
-      this.world.next()
+      // this.world.next()
     }
   }
   loop() {
