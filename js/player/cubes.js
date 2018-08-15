@@ -3,10 +3,6 @@ const TWEEN = require('../libs/tween.js')
 const THREE = require('../libs/three.min.js')
 
 const geometry = new THREE.CubeGeometry(CUBESIDE, CUBESIDE, CUBESIDE)
-// 导体块的材质
-const CCM = new THREE.MeshBasicMaterial({ color: 0x000000 })
-// 电源块的材质
-const BCM = new THREE.MeshBasicMaterial({ color: 0xffffff })
 
 // 方块
 class Cube extends THREE.Mesh {
@@ -31,6 +27,9 @@ class Cube extends THREE.Mesh {
 
 // 导体方块
 class CCube extends Cube {
+  /**
+   * 最下面一层导体块是白的，其余空间中分布的都是看不见的
+   */
   constructor(pos, isTransparent) {
     super(pos)
     this.material = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x050505 })

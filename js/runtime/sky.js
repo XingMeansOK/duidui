@@ -5,7 +5,7 @@ const THREE = require('../libs/three.min.js')
  * 这些不会旋转
  * @param [THREE.Scene] scene 三维场景对象
  */
-export default function sky( scene ) {
+export default function sky( scene, themeBg ) {
   var dirLight, dirLightHeper, hemiLight, hemiLightHelper;
   // LIGHTS
   // 半球光
@@ -53,10 +53,9 @@ export default function sky( scene ) {
 				gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
 			}`
   var uniforms = {
-    // topColor: { value: new THREE.Color(0x0077ff) },
-    // bottomColor: { value: new THREE.Color(0xffffff) },
     topColor: { value: new THREE.Color(0xffffff) },
-    bottomColor: { value: new THREE.Color(0x9fffff) },
+    // bottomColor: { value: new THREE.Color(0x9fffff) },
+    bottomColor: { value: new THREE.Color(themeBg) },
     offset: { value: 330 },
     exponent: { value: 0.6 }
   };

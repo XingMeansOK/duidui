@@ -1,7 +1,7 @@
 const THREE = require('../libs/three.min.js')
 const TWEEN = require('../libs/tween.js')
 import regeneratorRuntime from '../libs/regenerator-runtime';
-import { CUBESIDE, MULTIPLE, colors as COLORS } from '../constants.js'
+import { CUBESIDE, MULTIPLE } from '../constants.js'
 import { CCube, BCube, SCube } from '../player/cubes.js'
 import { gradientColor, hex2Object } from '../libs/utils.js'
 // 地面平台的宽高
@@ -11,15 +11,19 @@ const HEIGHT = 200
 // 初始旋转角度
 const ROTATION = Math.PI / 4
 
-var colors = COLORS.slice().map(color => hex2Object(color) )
-
-
 // scene 下游戏世界最顶层节点
 export default class World extends THREE.Group {
-  constructor(camera) {
+  /**
+   * 相机用于射线检测
+   * theme 是主题颜色数组
+   */
+  constructor(camera, theme) {
     super()
 
     this.camera = camera
+    this.theme = theme
+    // 颜色换成{r:1,g:1b:1},方便 ccube 调用
+    this.theme = theme.map(color => hex2Object(color))
     // GROUND
     var groundGeo = new THREE.CubeGeometry(SIDE, HEIGHT, SIDE)
     var groundMat = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x050505 })
@@ -113,7 +117,7 @@ export default class World extends THREE.Group {
         // 移动导体块
         else if (res && res.object && res.object.name === 'spaceccube') {
           if (res.object.material.opacity === 0) return 
-          if (!this.firstPick) {
+          if (!this.firstPick || this.firstPick === res.object) {
             this.firstPick = res.object
             this.firstPick.pop()
           }
@@ -134,11 +138,11 @@ export default class World extends THREE.Group {
                 middle.x - start.x + middle.x,
                 middle.y - start.y + middle.y,
                 middle.z - start.z + middle.z
-              ].map(component => parseInt(component / (CUBESIDE * MULTIPLE))).join('')
-              if (this.ccubeBox[end]) {
+              ].map(component => Math.round(component / (CUBESIDE * MULTIPLE))).join('')
+              if (this.ccubeBox[end] && this.ccubeBox[end].material.opacity === 0) {
                 this.ccubeBox[end].show(this.firstPick.color)
                 this.firstPick.hidden()
-              }
+              } 
             }
             this.firstPick = null
 
@@ -262,7 +266,7 @@ export default class World extends THREE.Group {
     if (cc.material.transparent && cc.material.opacity === 1) return 
 
     try {
-      let color = colors[this.getRandomInt(0, colors.length)]
+      let color = this.theme[this.getRandomInt(0, this.theme.length)]
       this.ccubeBox[`${x}${y}${z}`].show(color, color)
     } catch (e) {
       console.log(`${x}${y}${z}`)

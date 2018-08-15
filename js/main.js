@@ -10,6 +10,7 @@
 import World from './runtime/world.js'
 // 天空（灯光）
 import sky from './runtime/sky.js'
+import { THEME } from './constants.js'
 const THREE = require('./libs/three.min.js')
 const TWEEN = require('./libs/tween.js')
 // let ctx = canvas.getContext('2d')
@@ -44,12 +45,17 @@ export default class _3D {
     scene.background = new THREE.Color().setHSL(0.6, 0, 1);
     scene.fog = new THREE.Fog(scene.background, 1, 5000);
 
+    // 随机选择主题
+    let theme = THEME[parseInt(Math.random() * THEME.length)]
+    // 难易度
+    // 180 100
+    this.level = 180
     // 添加天空和光照
-    sky( scene )
+    sky( scene,  theme.bg)
 
     // 场景内的最顶层节点
     // 传入摄像机，用于射线检测
-    this.world = new World(camera)
+    this.world = new World(camera, theme.role)
     scene.add(this.world)
 
     // 渲染器
@@ -75,7 +81,8 @@ export default class _3D {
    */
   update() {
     this.frameId++
-    if (this.frameId < 180 && this.frameId % 6 === 0 ) {
+    // 难易度控制，方块越少越简单
+    if (this.frameId < this.level && this.frameId % 6 === 0 ) {
       this.world.next()
     }
     // if( this.frameId % 180 === 0 ) {
