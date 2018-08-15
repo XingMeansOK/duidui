@@ -1,14 +1,17 @@
 const THREE = require('../libs/three.min.js')
 const TWEEN = require('../libs/tween.js')
 import regeneratorRuntime from '../libs/regenerator-runtime';
-import { CUBESIDE, MULTIPLE } from '../constants.js'
+import { CUBESIDE, MULTIPLE, colors as COLORS } from '../constants.js'
 import { CCube, BCube, SCube } from '../player/cubes.js'
+import { gradientColor, hex2Object } from '../libs/utils.js'
 // 地面平台的宽高
 const SIDE = 140
 const HEIGHT = 200
 // const CUBESIDE = 20
 // 初始旋转角度
 const ROTATION = Math.PI / 4
+
+var colors = COLORS.slice().map(color => hex2Object(color) )
 
 
 // scene 下游戏世界最顶层节点
@@ -32,20 +35,19 @@ export default class World extends THREE.Group {
     this.rotation.y = ROTATION
 
     // 鼠标交互
-    // this.interaction()
-    this.bindJump()
+    this.interaction()
+    // this.bindJump()
 
     // 初始化方块
     this.initCube()
     // 当前点亮的 cube 和上一个点亮的 cube
-    this.lighting = this.lastLighting = this.ccubes[0]
   }
 
   /**
    * 添加场景触摸交互
    */
   interaction() {
-    // 场景控制
+    // 场景控制。
     // 鼠标上一次所处的位置
     let x, y, mouseVector = new THREE.Vector3(), raycaster = new THREE.Raycaster()
     let move = (e) => {
@@ -103,9 +105,45 @@ export default class World extends THREE.Group {
         var res = intersects.filter(function (res) {
           return res && res.object;
         })[0];
+        // 转动底座
         if (res && res.object && res.object.name === 'ground') {
           canvas.addEventListener('touchmove', move)
           canvas.addEventListener('touchend', end)
+        } 
+        // 移动导体块
+        else if (res && res.object && res.object.name === 'spaceccube') {
+          if (res.object.material.opacity === 0) return 
+          if (!this.firstPick) {
+            this.firstPick = res.object
+            this.firstPick.pop()
+          }
+          else {
+            // let material = this.firstPick.material.clone()
+            // let material2 = res.object.material.clone()
+            // this.firstPick.toggle(material2)
+            // res.object.toggle(material)
+            // this.firstPick = null
+
+            let start = this.firstPick.position
+            let middle = res.object.position
+            // 只有两个块相邻且在同一平面内的时候可以换
+            let c1 = start.distanceTo(middle) < (CUBESIDE * MULTIPLE) * Math.sqrt(2) * 1.01
+            let c2 = start.x === middle.x || start.y === middle.y || start.z === middle.z
+            if (c1 && c2 ) {
+              let end = [
+                middle.x - start.x + middle.x,
+                middle.y - start.y + middle.y,
+                middle.z - start.z + middle.z
+              ].map(component => parseInt(component / (CUBESIDE * MULTIPLE))).join('')
+              if (this.ccubeBox[end]) {
+                this.ccubeBox[end].show(this.firstPick.color)
+                this.firstPick.hidden()
+              }
+            }
+            this.firstPick = null
+
+          }
+          
         }
       }
 
@@ -135,8 +173,8 @@ export default class World extends THREE.Group {
     this.initCCube(ccpos)
     // this.initBCube(bcpos)
     // 运动块
-    this.scube = new SCube()
-    this.add(this.scube)
+    // this.scube = new SCube()
+    // this.add(this.scube)
   }
   /**
    * 初始化导体方块
@@ -205,24 +243,34 @@ export default class World extends THREE.Group {
     this.lastLighting = this.lighting
     // 如果到头了就原地返回
     this.lighting = next || temp
-    this.lighting.twinkle()
+    this.lighting.forEach(function(cc) {
+      cc.twinkle()
+    })
   }
 
-
-/**
+  /**
  * 变更点亮的导体块
  */
   next() {
+
     let x = this.getRandomInt(-2, 3)
-    let y = this.getRandomInt(0, 5)
+    let y = this.getRandomInt(1, 8)
     let z = this.getRandomInt(-2, 3)
-    // 到当前点亮的导体块的距离小于CUBESIDE
+    // 随机选中的导体块
+    let cc = this.ccubeBox[`${x}${y}${z}`]
+
+    if (cc.material.transparent && cc.material.opacity === 1) return 
+
     try {
-      this.ccubeBox[`${x}${y}${z}`].twinkle()
-    } catch(e) {
+      let color = colors[this.getRandomInt(0, colors.length)]
+      this.ccubeBox[`${x}${y}${z}`].show(color, color)
+    } catch (e) {
       console.log(`${x}${y}${z}`)
     }
 
   }
+
+
+
 }
 

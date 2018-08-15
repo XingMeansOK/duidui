@@ -25,6 +25,6 @@ var p = (function (x, y, z) {
     ccpos,
     bcpos
   }
-}(5, 5, 5))
+}(5, 8, 5))
 
 export default p

@@ -26,7 +26,7 @@ export default function sky( scene ) {
   dirLight.castShadow = true
   dirLight.shadow.mapSize.width = 2048
   dirLight.shadow.mapSize.height = 2048
-  var d = 100
+  var d = 200
   dirLight.shadow.camera.left = -d
   dirLight.shadow.camera.right = d
   dirLight.shadow.camera.top = d

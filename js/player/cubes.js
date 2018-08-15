@@ -18,6 +18,15 @@ class Cube extends THREE.Mesh {
     this.position.set(...pos)
     this.geometry = geometry
   }
+  /**
+   * 获取渐变色数组
+   * @param colorStart 颜色起始值
+   * @param colorEnd 颜色终止值
+   * @param step 分段数
+   */
+  static getColorArr(colorStart, colorEnd, step) {
+
+  }
 }
 
 // 导体方块
@@ -26,32 +35,118 @@ class CCube extends Cube {
     super(pos)
     this.material = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x050505 })
     this.material.transparent = !!isTransparent
+    // 在空间中占位的方块
     if (!!isTransparent) {
       this.material.opacity = 0
       this.castShadow = false
       this.receiveShadow = false;
+      this.scale.set(0.01, 0.01, 0.01)
+      this.name = 'spaceccube'
     }
   }
   /**
-   * 闪烁动画
+   * 出现动画
+   * middle { r: 0,g: 1, b:1 } 过渡色
+   * end 终止色
    */
-  twinkle() {
-    let tween = new TWEEN.Tween(this.material.color)
-      .to({ r: 0,g: 1, b:1 }, 0.1)
+  show(middle, end) {
+    let tween = new TWEEN.Tween(this.scale)
+      .to({ x: 1.1, y: 1.1, z: 1.1 }, 0.1)
       .onStart(() => {
         this.material.transparent && (this.material.opacity = 1)
+        this.castShadow = true
+        this.receiveShadow = true;
       })
 
-    let tweenBack = new TWEEN.Tween(this.material.color)
-      .to({ r: 1, g: 1, b: 1 }, 0.7)
+    let tweenC = new TWEEN.Tween(this.material.color)
+      .to(middle, 0.1)
+    tweenC.start()
+
+    // 保存颜色对象
+    this.color = middle
+
+    let tweenBack = new TWEEN.Tween(this.scale)
+      .to({ x: 1, y: 1, z: 1 }, 0.3)
+        .onComplete(() => {
+          // this.material.transparent && (this.material.opacity = 0)
+        })
+
+    tween.chain(tweenBack)
+
+    tween.start()
+  }
+
+  /**
+   * 隐藏
+   */
+  hidden(middle, end) {
+    let tween = new TWEEN.Tween(this.scale)
+      .to({ x: 1.1, y: 1.1, z: 1.1 }, 0.2)
+
+    let tweenBack = new TWEEN.Tween(this.scale)
+      .to({ x: 0.01, y: 0.01, z: 0.01 }, 0.1)
       .onComplete(() => {
-        this.material.transparent && (this.material.opacity = 0)
+        if(this.material.transparent) {
+          this.material.opacity = 0
+          this.castShadow = false
+          this.receiveShadow = false
+        } 
       })
 
     tween.chain(tweenBack)
 
     tween.start()
   }
+
+/**
+ *  交换颜色
+ */
+  toggle(material) {
+    let tween = new TWEEN.Tween(this.scale)
+      .to({ x: 1.1, y: 1.1, z: 1.1 }, 0.2)
+
+    let tweenBack = new TWEEN.Tween(this.scale)
+      .to({ x: 0.01, y: 0.01, z: 0.01 }, 0.1)
+      .onComplete(() => {
+        if (this.material.transparent) {
+          this.material.opacity = 0
+          this.material = material
+        }
+      })
+
+    let tween3 = new TWEEN.Tween(this.scale)
+      .to({ x: 1.1, y: 1.1, z: 1.1 }, 0.2)
+    let tween4 = new TWEEN.Tween(this.scale)
+      .to({ x: 1, y: 1, z: 1 }, 0.3)
+      .onComplete(() => {
+        // this.material.transparent && (this.material.opacity = 0)
+      })
+
+    tween.chain(tweenBack)
+    tweenBack.chain(tween3)
+    tween3.chain(tween4)
+
+    tween.start()
+  }
+
+/**
+ * 涨一下
+ */
+pop() {
+  let tween = new TWEEN.Tween(this.scale)
+    .to({ x: 1.1, y: 1.1, z: 1.1 }, 0.1)
+
+  let tweenBack = new TWEEN.Tween(this.scale)
+    .to({ x: 1, y: 1, z: 1 }, 0.1)
+    .onComplete(() => {
+      // this.material.transparent && (this.material.opacity = 0)
+    })
+
+  tween.chain(tweenBack)
+
+  tween.start()
+}
+
 }
 
 // 电源块

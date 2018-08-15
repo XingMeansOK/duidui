@@ -75,9 +75,12 @@ export default class _3D {
    */
   update() {
     this.frameId++
-    if( this.frameId % 8 === 0 ) {
+    if (this.frameId < 180 && this.frameId % 6 === 0 ) {
       this.world.next()
     }
+    // if( this.frameId % 180 === 0 ) {
+    //   this.world.next()
+    // }
   }
   loop() {
     this.update()
