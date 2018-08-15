@@ -140,8 +140,11 @@ export default class World extends THREE.Group {
                 middle.z - start.z + middle.z
               ].map(component => Math.round(component / (CUBESIDE * MULTIPLE))).join('')
               if (this.ccubeBox[end] && this.ccubeBox[end].material.opacity === 0) {
+                // 跳转
                 this.ccubeBox[end].show(this.firstPick.color)
                 this.firstPick.hidden()
+                // 位于底部一整行或一整列相同颜色的方块将消失
+                this.ccubeBox[end].position.y === CUBESIDE * MULTIPLE && this.clearBottom()
               } 
             }
             this.firstPick = null
@@ -201,6 +204,7 @@ export default class World extends THREE.Group {
       let loc = coordinates.map( component => {
         return component * CUBESIDE * MULTIPLE
       })
+      // 第二个参数表示是否透明
       let cc = new CCube(loc, y)
       this.add(cc)
       // 例如，位于（1,0,1）的ccube可以通过ccubeBox['101']获取
@@ -274,6 +278,113 @@ export default class World extends THREE.Group {
 
   }
 
+  /**
+   * 清理底部整行整列相同颜色的块
+   */
+  clearBottom() {
+    let range = [-2,-1,0,1,2]
+    let zNeed = true
+    range.forEach( x => {
+      // 颜色一致和透明度（是否显示）
+      let isSameX = this.isSameX(x,range)
+      if(isSameX) {
+        // 如果相同x的一行颜色相同，还要检查与之交叉的相同z的列，如果存在行列交叉颜色相同就都消了
+        let z = range.find(z => {
+          return this.isSameZ(z,range)
+        })
+        if(z) {
+          this.clearXZ( x, z, range )
+        } else {
+          this.clearX( x, range )
+        }
+        zNeed = false
+      }
+    })
+    // 如果有x相同的一行，就不用检查z了
+    if(zNeed) {
+      range.forEach(z => {
+        // 颜色一致和透明度（是否显示）
+        let isSameZ = this.isSameZ(z, range)
+        if (isSameZ) {
+          this.clearZ(z,range)
+        }
+      })
+    }
+
+    // 检查游戏是否结束
+    this.checkEnd()
+  }
+
+  // 检查x相同的一行颜色是否相同
+  isSameX (x,range){
+    return range.every(z => {
+      let c1 = this.ccubeBox[`${x}${1}${z}`].material.color === this.ccubeBox[`${x}${1}${0}`].material.color
+      return c1 && this.ccubeBox[`${x}${1}${z}`].material.opacity === 1
+    })
+  }
+
+  // 检查z相同的一行颜色是否相同
+  isSameZ(z, range) {
+    return range.every(x => {
+      let c1 = this.ccubeBox[`${x}${1}${z}`].material.color === this.ccubeBox[`${x}${1}${0}`].material.color
+      return c1 && this.ccubeBox[`${x}${1}${z}`].material.opacity === 1
+    })
+  }
+
+  /**
+   * 清除底部x相同的一行
+   */
+  clearX(x,range) {
+    range.forEach( z => {
+      this.ccubeBox[`${x}${1}${z}`].hidden()
+    })
+  }
+/**
+ * 清除底部z相同的一行
+ */
+  clearZ(z, range) {
+    range.forEach(x => {
+      this.ccubeBox[`${x}${1}${z}`].hidden()
+    })
+  }
+
+/**
+* 清除底部xz相同的一行
+*/
+  clearXZ(x,z, range) {
+    let collection = []
+    range.forEach(z => {
+      collection.push(this.ccubeBox[`${x}${1}${z}`] )
+    })
+    range.forEach(x => {
+      collection.push(this.ccubeBox[`${x}${1}${z}`])
+    })
+    collection.forEach(cc => {
+      // 交叉点会调用两次
+      cc.hidden()
+    })
+  }
+
+/**
+ * 检查游戏是否结束
+ */
+  checkEnd() {
+    // yLimit层数内没有有带颜色的方块就算赢
+    let yLimit = [3,4,5,6,7]
+    let done = yLimit.every( y => {
+      for(let x = -2; x < 3; x++) {
+        for(let z = -2; z < 3; z++) {
+          if( this.ccubeBox[`${x}${y}${z}`].material.opacity === 1 ) return false
+        }
+      }
+      return true
+    })
+
+    if(done) {
+
+    }
+
+  }
 
 
 }
