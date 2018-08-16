@@ -4,6 +4,7 @@ import regeneratorRuntime from '../libs/regenerator-runtime';
 import { CUBESIDE, MULTIPLE } from '../constants.js'
 import { CCube, BCube, SCube } from '../player/cubes.js'
 import { gradientColor, hex2Object } from '../libs/utils.js'
+import TouchScreen from './touchScreen.js'
 // 地面平台的宽高
 const SIDE = 140
 const HEIGHT = 200
@@ -38,13 +39,15 @@ export default class World extends THREE.Group {
     // 初始旋转角度
     this.rotation.y = ROTATION
 
+    // 初始化交互平面
+    this.initTouchScreen()
     // 鼠标交互
     this.interaction()
     // this.bindJump()
 
     // 初始化方块
     this.initCube()
-    // 当前点亮的 cube 和上一个点亮的 cube
+
   }
 
   /**
@@ -394,6 +397,15 @@ export default class World extends THREE.Group {
 
     }
 
+  }
+
+  /**
+   * 初始化交互平面
+   */
+  initTouchScreen() {
+    this.touchScreen = new TouchScreen()
+    this.camera.add( this.touchScreen )
+    this.touchScreen.position.z = 200
   }
 
 
