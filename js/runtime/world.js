@@ -140,11 +140,14 @@ export default class World extends THREE.Group {
                 middle.z - start.z + middle.z
               ].map(component => Math.round(component / (CUBESIDE * MULTIPLE))).join('')
               if (this.ccubeBox[end] && this.ccubeBox[end].material.opacity === 0) {
+                let clearBottom = this.clearBottom.bind(this)
                 // 跳转
-                this.ccubeBox[end].show(this.firstPick.color)
                 this.firstPick.hidden()
+                this.ccubeBox[end].show(this.firstPick.color)
                 // 位于底部一整行或一整列相同颜色的方块将消失
-                this.ccubeBox[end].position.y === CUBESIDE * MULTIPLE && this.clearBottom()
+                this.ccubeBox[end].position.y === CUBESIDE * MULTIPLE ? 
+                this.ccubeBox[end].show(this.firstPick.color,clearBottom) 
+                : this.ccubeBox[end].show(this.firstPick.color)
               } 
             }
             this.firstPick = null
@@ -271,7 +274,7 @@ export default class World extends THREE.Group {
 
     try {
       let color = this.theme[this.getRandomInt(0, this.theme.length)]
-      this.ccubeBox[`${x}${y}${z}`].show(color, color)
+      this.ccubeBox[`${x}${y}${z}`].show(color)
     } catch (e) {
       console.log(`${x}${y}${z}`)
     }
@@ -318,6 +321,11 @@ export default class World extends THREE.Group {
   // 检查x相同的一行颜色是否相同
   isSameX (x,range){
     return range.every(z => {
+
+      let colorA = this.ccubeBox[`${x}${1}${0}`].material.color
+      let colorB = this.ccubeBox[`${x}${1}${z}`].material.color
+      let condition1 = ['r', 'g', 'b'].every(c => colorA[c] === colorB[c])
+
       let c1 = this.ccubeBox[`${x}${1}${z}`].material.color === this.ccubeBox[`${x}${1}${0}`].material.color
       return c1 && this.ccubeBox[`${x}${1}${z}`].material.opacity === 1
     })
@@ -326,8 +334,10 @@ export default class World extends THREE.Group {
   // 检查z相同的一行颜色是否相同
   isSameZ(z, range) {
     return range.every(x => {
-      let c1 = this.ccubeBox[`${x}${1}${z}`].material.color === this.ccubeBox[`${x}${1}${0}`].material.color
-      return c1 && this.ccubeBox[`${x}${1}${z}`].material.opacity === 1
+      let colorA = this.ccubeBox[`${x}${1}${z}`].material.color
+      let colorB = this.ccubeBox[`${0}${1}${z}`].material.color
+      let condition1 = ['r', 'g', 'b'].every(c => colorA[ c ] === colorB[ c ] )
+      return condition1 && this.ccubeBox[`${x}${1}${z}`].material.opacity === 1
     })
   }
 

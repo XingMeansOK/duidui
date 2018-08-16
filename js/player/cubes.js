@@ -45,10 +45,10 @@ class CCube extends Cube {
   }
   /**
    * 出现动画
-   * middle { r: 0,g: 1, b:1 } 过渡色
-   * end 终止色
+   * middle { r: 0,g: 1, b:1 } 目标颜色
+   * cb 出现之后的回调函数
    */
-  show(middle, end) {
+  show(middle,cb) {
     let tween = new TWEEN.Tween(this.scale)
       .to({ x: 1.1, y: 1.1, z: 1.1 }, 0.1)
       .onStart(() => {
@@ -67,7 +67,7 @@ class CCube extends Cube {
     let tweenBack = new TWEEN.Tween(this.scale)
       .to({ x: 1, y: 1, z: 1 }, 0.3)
         .onComplete(() => {
-          // this.material.transparent && (this.material.opacity = 0)
+          cb && cb()
         })
 
     tween.chain(tweenBack)
