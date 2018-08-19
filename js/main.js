@@ -29,17 +29,14 @@ export default class _3D {
     this.lookAtY = 100
     this.cameraHeight = this.lookAtY + 200 
     this.cameraDistanceToY = 500
-    // 摄像机旋转的总角度
-    this.cameraRotation = 0
 
     // 摄像机
     // 正射摄像头
     let aspect = window.innerWidth / window.innerHeight
     let k = 200
-    camera = new THREE.OrthographicCamera( - k * aspect, k * aspect, k, - k, 0.1, 10000);
-    // camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 5000);
-    // camera.position.set(this.cameraDistanceToY / Math.sqrt(2), this.cameraHeight, this.cameraDistanceToY / Math.sqrt(2))
-    camera.position.set(0, this.cameraHeight, this.cameraDistanceToY)
+    camera = new THREE.OrthographicCamera( - k * aspect, k * aspect, k, - k, 0.1, 10000)
+    // camera.position.set(0, this.cameraHeight, this.cameraDistanceToY)
+    camera.position.set(0, 1500, 500)
     camera.lookAt(0, this.lookAtY, 0)
     scene = new THREE.Scene();
     scene.background = new THREE.Color().setHSL(0.6, 0, 1);
@@ -74,6 +71,18 @@ export default class _3D {
     this.frameId = 1
 
     window.requestAnimationFrame(this.loop.bind(this), canvas)
+
+    //测试用==================================
+    var helper = new THREE.CameraHelper(camera);
+    scene.add(helper)
+
+    var axesHelper = new THREE.AxesHelper(500);
+    scene.add(axesHelper);
+
+    this.camera2 = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 500000);
+    this.camera2.position.set(1000, 1000, 0)
+    this.camera2.lookAt(0, 0, 0)
+    // 测试用========================================
   }
 
   /**
@@ -92,7 +101,8 @@ export default class _3D {
   loop() {
     this.update()
     TWEEN.update()
-    this.renderer.render(this.scene, this.camera)
+    this.renderer.render(this.scene, this.camera2)
+    // this.renderer.render(this.scene, this.camera)
     window.requestAnimationFrame(this.loop.bind(this), canvas)
   }
 }
