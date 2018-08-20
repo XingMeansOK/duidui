@@ -403,9 +403,12 @@ export default class World extends THREE.Group {
    * 初始化交互平面
    */
   initTouchScreen() {
-    this.touchScreen = new TouchScreen()
+    // 宽高
+    let width = this.camera.right * 2
+    let height = this.camera.top * 2
+    this.touchScreen = new TouchScreen(width, height)
     this.camera.add( this.touchScreen )
-    this.touchScreen.position.z = 200
+    this.touchScreen.position.z = -200
   }
 
 

@@ -37,8 +37,6 @@ export default class _3D {
     let aspect = window.innerWidth / window.innerHeight
     let k = 200
     camera = new THREE.OrthographicCamera( - k * aspect, k * aspect, k, - k, 0.1, 10000);
-    // camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 5000);
-    // camera.position.set(this.cameraDistanceToY / Math.sqrt(2), this.cameraHeight, this.cameraDistanceToY / Math.sqrt(2))
     camera.position.set(0, this.cameraHeight, this.cameraDistanceToY)
     camera.lookAt(0, this.lookAtY, 0)
     scene = new THREE.Scene();
@@ -74,6 +72,9 @@ export default class _3D {
     this.frameId = 1
 
     window.requestAnimationFrame(this.loop.bind(this), canvas)
+
+    // 交互平面添加到摄像机上，需要把摄像机添加到场景中才会渲染交互平面
+    this.scene.add(this.camera)
   }
 
   /**
@@ -85,9 +86,10 @@ export default class _3D {
     if (this.frameId < this.level && this.frameId % 6 === 0 ) {
       this.world.next()
     }
-    // if( this.frameId % 180 === 0 ) {
-    //   this.world.next()
-    // }
+    // 有可能初始化之后就满足消除的条件
+    if(this.frameId === this.level + 24) {
+      this.world.clearBottom()
+    }
   }
   loop() {
     this.update()
