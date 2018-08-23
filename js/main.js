@@ -34,9 +34,8 @@ export default class _3D {
     // 正射摄像头
     let aspect = window.innerWidth / window.innerHeight
     let k = 200
-    camera = new THREE.OrthographicCamera( - k * aspect, k * aspect, k, - k, 0.1, 10000)
-    // camera.position.set(0, this.cameraHeight, this.cameraDistanceToY)
-    camera.position.set(0, 1500, 500)
+    camera = new THREE.OrthographicCamera( - k * aspect, k * aspect, k, - k, 0.1, 10000);
+    camera.position.set(0, this.cameraHeight, this.cameraDistanceToY)
     camera.lookAt(0, this.lookAtY, 0)
     scene = new THREE.Scene();
     scene.background = new THREE.Color().setHSL(0.6, 0, 1);
@@ -72,17 +71,8 @@ export default class _3D {
 
     window.requestAnimationFrame(this.loop.bind(this), canvas)
 
-    //测试用==================================
-    var helper = new THREE.CameraHelper(camera);
-    scene.add(helper)
-
-    var axesHelper = new THREE.AxesHelper(500);
-    scene.add(axesHelper);
-
-    this.camera2 = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 500000);
-    this.camera2.position.set(1000, 1000, 0)
-    this.camera2.lookAt(0, 0, 0)
-    // 测试用========================================
+    // 交互平面添加到摄像机上，需要把摄像机添加到场景中才会渲染交互平面
+    this.scene.add(this.camera)
   }
 
   /**
@@ -94,15 +84,15 @@ export default class _3D {
     if (this.frameId < this.level && this.frameId % 6 === 0 ) {
       this.world.next()
     }
-    // if( this.frameId % 180 === 0 ) {
-    //   this.world.next()
-    // }
+    // 有可能初始化之后就满足消除的条件
+    if(this.frameId === this.level + 24) {
+      this.world.clearBottom()
+    }
   }
   loop() {
     this.update()
     TWEEN.update()
-    this.renderer.render(this.scene, this.camera2)
-    // this.renderer.render(this.scene, this.camera)
+    this.renderer.render(this.scene, this.camera)
     window.requestAnimationFrame(this.loop.bind(this), canvas)
   }
 }

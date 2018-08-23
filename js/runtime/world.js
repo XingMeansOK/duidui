@@ -403,16 +403,12 @@ export default class World extends THREE.Group {
    * 初始化交互平面
    */
   initTouchScreen() {
-    // this.touchScreen = new TouchScreen()
-    // this.camera.add( this.touchScreen )
-    // this.touchScreen.position.z = 200
-
-    var geometry = new THREE.BoxGeometry(500, 500, 500);
-    var material = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide, opacity: 0.3, transparent: true });
-    var circle = new THREE.Mesh(geometry, material);
-
-    this.camera.add(circle)
-    // circle.position.z = 100
+    // 宽高
+    let width = this.camera.right * 2
+    let height = this.camera.top * 2
+    this.touchScreen = new TouchScreen(width, height)
+    this.camera.add( this.touchScreen )
+    this.touchScreen.position.z = -200
   }
 
 
