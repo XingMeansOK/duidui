@@ -17,3 +17,9 @@ export default class TouchScreen extends THREE.Group {
 
   }
 }
+
+class Pixel extends THREE.Mesh {
+  constructor() {
+    super()
+  }
+}
