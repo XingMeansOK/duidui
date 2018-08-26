@@ -107,17 +107,20 @@ export default class World extends THREE.Group {
         (x / window.innerWidth) * 2 - 1, - (y / window.innerHeight) * 2 + 1,
         0.5);
       raycaster.setFromCamera(mouseVector, this.camera);
-      var intersects = raycaster.intersectObjects([this], true);
+      // touchScreen 是摄像机的子节点，需要单独加上去
+    
+      var intersects = raycaster.intersectObjects([this, this.touchScreen ], true);
       if (intersects.length > 0) {
         var res = intersects.filter(function (res) {
           return res && res.object;
         })[0];
-        // 转动底座
+
+        // *******转动底座***************
         if (res && res.object && res.object.name === 'ground') {
           canvas.addEventListener('touchmove', move)
           canvas.addEventListener('touchend', end)
         } 
-        // 移动导体块
+        // *********移动导体块*******************
         else if (res && res.object && res.object.name === 'spaceccube') {
           if (res.object.material.opacity === 0) return 
           if (!this.firstPick || this.firstPick === res.object) {
@@ -125,11 +128,6 @@ export default class World extends THREE.Group {
             this.firstPick.pop()
           }
           else {
-            // let material = this.firstPick.material.clone()
-            // let material2 = res.object.material.clone()
-            // this.firstPick.toggle(material2)
-            // res.object.toggle(material)
-            // this.firstPick = null
 
             let start = this.firstPick.position
             let middle = res.object.position
@@ -157,6 +155,11 @@ export default class World extends THREE.Group {
 
           }
           
+        }
+        //***************点击到touch screen 上的情况*****************
+        else if (res && res.object && res.object.name === 'pixel' ) {
+          let pixel = res.object
+          pixel.flip()
         }
       }
 
